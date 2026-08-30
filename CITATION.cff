@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this research prototype, cite the software and the specific scientific sources relevant to your analysis."
+title: "Auditory Inference Lab"
+type: software
+authors:
+  - family-names: Jenaro
+    given-names: Guillermo
+version: 0.1.0
+date-released: 2026-08-30
+url: "https://github.com/gjenaro/Auditory-Inference-Lab"
+repository-code: "https://github.com/gjenaro/Auditory-Inference-Lab"
+license: LicenseRef-Proprietary
+abstract: >-
+  A closed-loop iPhone research prototype for bilateral relative pure-tone
+  screening, bilingual speech-in-noise testing, predictive-listening behavior,
+  uncertainty-aware left/right audio candidates, blinded comparison, and
+  longitudinal personal preference tracking.
+keywords:
+  - audiometry
+  - speech-in-noise
+  - auditory neuroscience
+  - predictive listening
+  - psychoacoustics
+  - personalization
+  - blinded comparison
+  - SwiftUI

@@ -279,6 +279,45 @@ drawn with replacement. Each is refit and the nearest 2.5% and 97.5% order
 statistics form the displayed interval. The seeded generator makes results
 repeatable for a fixed point count and sequence.
 
+## Speech Standard versus EQ comparison
+
+### Plan construction
+
+1. Allocate 36 corpus candidates from the persisted English or Spanish cursor.
+2. Remove exact text duplicates and require at least 24 unique sentences.
+3. Greedily create 12 pairs. Pair distance is
+   `12·|Δwords| + 0.35·|Δletters| + 1.5·|ΔvowelGroups| + 30·sharedContentWords`.
+4. Orient each pair between Standard and EQ to minimize cumulative imbalance in
+   those three complexity counts.
+5. Shuffle each 12-item condition list and randomly select block order using a
+   saved SplitMix64-style seed.
+
+No sentence is repeated within a run. The large overlap penalty normally yields
+zero shared content words inside each matched pair for the current corpora; the
+observed maximum is stored and displayed rather than assumed.
+
+### Fixed-condition playback
+
+- 12 Standard and 12 Audiogram-EQ trials.
+- One noise family and one digital SNR, defaulting to the current SNR80 and
+  clamped to −5…+12 dB, remain fixed.
+- Language, device voice profile, selected audiogram, and 0…20 dB filter cap
+  remain fixed.
+- Speech is normalized to active RMS 0.12 and the masker is scaled by
+  $R_n=R_s/10^{S/20}$.
+- Speech and masker are summed, peak-limited, duplicated to two mono paths, and
+  passed through identical left/right graphs.
+- Matched pair members use the same deterministic masker seed/prefix, derived
+  from the saved plan seed and pair index.
+- Standard bypasses EQ; Audiogram EQ enables the selected eight bands.
+- Both use master attenuation of `maximumBoost + 1 dB`.
+
+The score is the ordinary multiset word-correct fraction. The result reports
+condition means, EQ minus Standard percentage points, paired differences, and a
+normal-approximation interval when at least four pairs exist. Replays and
+response times are retained for quality review. The procedure is exploratory
+and does not update the adaptive SNR psychometric curve.
+
 ## Predictive listening
 
 The 36-trial plan is built from four bilingual item pools. Within each block,

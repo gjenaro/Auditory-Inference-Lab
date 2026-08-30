@@ -2,8 +2,8 @@
 
 ## Status statement
 
-Auditory Inference Lab is a new engineering MVP. The current 0.1 source has been
-Swift type-checked against the iPhone Simulator SDK. A deterministic macOS check
+Auditory Inference Lab is a new engineering MVP. The current 0.2 source has been
+Swift type-checked against the iPhone SDK. A deterministic macOS check
 also passes the inference profile, bounded candidate outputs, zero Original path,
 six-pair recommendation boundary, and experiment JSON round trip. Xcode also
 completed a development-signed device build, installed the distinct bundle on
@@ -29,6 +29,7 @@ therapeutic benefit, population reliability, or regulatory compliance.
 | Channel routing | Stereo PCM construction and manual L/R setup checks | Acoustic channel-isolation measurements across supported AirPods and Bose QuietComfort models |
 | Tone levels | Known digital equations and caps | SPL/dB HL calibration and distortion measurements |
 | Speech SNR | Known digital RMS ratio | Acoustic SNR at the eardrum and standardized speech-test validity |
+| Standard/EQ speech | Deterministic English/Spanish plan checks: 24 unique items, 12/condition, both conditions, matched-pair scoring, near-zero aggregate word imbalance, and zero shared pairwise content words in the fixed fixture | Corpus/list psychometric equivalence, actual transfer-function capture, adequate sample size, test-retest reliability, placebo/expectancy control, and clinical or perceptual benefit |
 | Psychometric fit | Deterministic grid search and bootstrap implementation | Bias, coverage, fit rejection, normative population data |
 | Predictive listening | Typed trial records and transparent within-run contrasts | List equivalence, construct validity, norms, neural interpretation, diagnostic validity |
 | Compensation | Code-level independent L/R EQ and shared headroom | Perceptual benefit, output safety, peak analysis, clinical fitting validity |
@@ -83,6 +84,13 @@ The adaptive 72% rule, trial counts, and logistic objective have not been compar
 against a reference speech-in-noise protocol. SNR values should be treated as
 within-app digital estimates.
 
+The Standard/EQ comparison improves internal control by fixing voice, noise,
+SNR, headroom, and trial count and by randomizing block order. Its matching
+metrics are only surface-language proxies. The system-voice renderings are not
+validated equivalent lists, the listener is not guaranteed to be perceptually
+blinded, and 12 pairs are too few to establish efficacy. A positive run must not
+be presented as proof that the filter improves hearing or as a treatment effect.
+
 ### Predictive-listening measures are behavioral and exploratory
 
 The context, interruption, misleading-context, and filtered-speech blocks do not
@@ -135,6 +143,9 @@ Create a unit-test target and cover:
 - psychometric fit on known synthetic curves;
 - bootstrap determinism and interval ordering;
 - word-token handling in English and Spanish;
+- Standard/EQ candidate uniqueness, pairwise lexical-overlap limits, aggregate
+  complexity balance, seeded order reproducibility, score direction, interval
+  behavior, and legacy decoding;
 - 144-item sentence-cycle uniqueness and boundary behavior for both languages;
 - predictive plan size, block counts, condition balance, scoring, replay penalties,
   protocol-version persistence, and legacy decoding;

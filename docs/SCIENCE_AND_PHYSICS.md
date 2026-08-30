@@ -277,7 +277,40 @@ Important limitations include the small trial count, deterministic sentence
 sequence, synthetic talkers/noises, continuous word-fraction scores, no lapse or
 guess parameter, grid quantization, and no goodness-of-fit rejection test.
 
-## 11. Context, restoration, and adaptation
+## 11. Controlled Standard versus EQ contrast
+
+The EQ comparison fixes a digital SNR and measures word-correct fraction under
+two playback conditions. If $x_i$ and $e_i$ are the Standard and EQ scores in
+matched pair $i$, the reported effect is
+
+$$
+\Delta = 100\,\frac{1}{n}\sum_{i=1}^{n}(e_i-x_i)
+$$
+
+in percentage points. The displayed approximate 95% interval is
+$\bar d \pm 1.96s_d/\sqrt{n}$, also converted to percentage points. With only 12
+pairs, non-Gaussian bounded scores, and no multiplicity correction, this interval
+is descriptive rather than confirmatory.
+
+Material is different across conditions and paired by surface proxies: word
+count, Unicode-letter count, vowel-group count, and content-word overlap after
+language-specific stop-word removal. These controls improve balance but do not
+establish phonemic, lexical-frequency, semantic-predictability, dialect, or
+psychometric-list equivalence. Formal equivalence requires expert corpus design,
+recorded or validated talkers, pilot item-response data, and counterbalanced
+testing in the target population.
+
+Speech and noise are summed before equalization. For a linear filter $H_e(f)$ in
+ear $e$, both components experience the same transfer function:
+
+$$Y_e(f)=H_e(f)\,[S(f)+N(f)].$$
+
+This preserves the intended signal-chain comparison and avoids selectively
+boosting speech alone. It does not guarantee an unchanged acoustic or
+critical-band SNR at the eardrum because speech and masker spectra, nonlinear
+headset DSP, fit, and ambient leakage remain uncontrolled.
+
+## 12. Context, restoration, and adaptation
 
 The acoustic waveform is incomplete and ambiguous, especially in noise. Speech
 recognition therefore reflects both sensory evidence and constraints supplied by

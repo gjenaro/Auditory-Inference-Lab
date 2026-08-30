@@ -21,6 +21,8 @@
 		A0000000000000000000000C /* PredictiveListeningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000000E /* PredictiveListeningView.swift */; };
 		A0000000000000000000000D /* InferenceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000000F /* InferenceModels.swift */; };
 		A0000000000000000000000E /* InferenceLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000010 /* InferenceLabView.swift */; };
+		A0000000000000000000000F /* SpeechComparisonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000011 /* SpeechComparisonModels.swift */; };
+		A00000000000000000000010 /* SpeechEQComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000000000000000000012 /* SpeechEQComparisonView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		B0000000000000000000000E /* PredictiveListeningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictiveListeningView.swift; sourceTree = "<group>"; };
 		B0000000000000000000000F /* InferenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InferenceModels.swift; sourceTree = "<group>"; };
 		B00000000000000000000010 /* InferenceLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InferenceLabView.swift; sourceTree = "<group>"; };
+		B00000000000000000000011 /* SpeechComparisonModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechComparisonModels.swift; sourceTree = "<group>"; };
+		B00000000000000000000012 /* SpeechEQComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechEQComparisonView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +101,7 @@
 				B00000000000000000000004 /* Models.swift */,
 				B0000000000000000000000D /* PredictiveModels.swift */,
 				B0000000000000000000000F /* InferenceModels.swift */,
+				B00000000000000000000011 /* SpeechComparisonModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -109,6 +114,7 @@
 				B0000000000000000000000B /* PersonalizedAudioView.swift */,
 				B0000000000000000000000E /* PredictiveListeningView.swift */,
 				B00000000000000000000010 /* InferenceLabView.swift */,
+				B00000000000000000000012 /* SpeechEQComparisonView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -213,6 +219,8 @@
 				A0000000000000000000000C /* PredictiveListeningView.swift in Sources */,
 				A0000000000000000000000D /* InferenceModels.swift in Sources */,
 				A0000000000000000000000E /* InferenceLabView.swift in Sources */,
+				A0000000000000000000000F /* SpeechComparisonModels.swift in Sources */,
+				A00000000000000000000010 /* SpeechEQComparisonView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,13 +255,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = J9M54296UX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SNRLab/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gjenaro.AuditoryInferenceLab;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -269,13 +277,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = J9M54296UX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SNRLab/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gjenaro.AuditoryInferenceLab;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

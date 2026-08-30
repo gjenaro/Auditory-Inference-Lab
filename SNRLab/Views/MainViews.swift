@@ -237,6 +237,7 @@ struct ResultsView: View {
     private var language: TestLanguage { model.selectedLanguage }
     private var pureToneTest: BilateralPureToneTest? { model.profile.latestPureToneTest }
     private var predictiveTest: PredictiveListeningTest? { model.profile.latestPredictiveTest }
+    private var speechEQComparison: SpeechEQComparisonTest? { model.profile.latestSpeechEQComparison }
     private var speechConfidence: SpeechConfidenceIntervals? {
         PsychometricEstimator.bootstrapConfidenceIntervals(model.profile.speechTestPoints)
     }
@@ -364,7 +365,32 @@ struct ResultsView: View {
                     .font(.footnote).foregroundStyle(.secondary)
                 }
 
-                sectionTitle(language.text("3. Predictive listening", "3. Escucha predictiva"))
+                sectionTitle(language.text("3. Speech: standard vs EQ", "3. Habla: estándar vs EQ"))
+
+                if let speechEQComparison {
+                    SpeechEQComparisonSummary(test: speechEQComparison, language: language)
+                } else {
+                    GlassCard {
+                        VStack(spacing: 12) {
+                            ContentUnavailableView(
+                                language.text("No EQ speech comparison yet", "Aún no hay comparación de habla con EQ"),
+                                systemImage: "slider.horizontal.3",
+                                description: Text(language.text(
+                                    "Compare matched non-repeating speech under standard and audiogram-EQ conditions.",
+                                    "Compara habla equilibrada y sin repetición en condiciones estándar y con EQ del audiograma."
+                                ))
+                            )
+                            NavigationLink(destination: SpeechEQComparisonView()) {
+                                Label(language.text("Run Standard vs EQ", "Iniciar estándar vs EQ"), systemImage: "play.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.cyan)
+                        }
+                    }
+                }
+
+                sectionTitle(language.text("4. Predictive listening", "4. Escucha predictiva"))
 
                 if let predictiveTest {
                     PredictiveListeningSummary(test: predictiveTest, language: language)
@@ -389,7 +415,7 @@ struct ResultsView: View {
                     }
                 }
 
-                sectionTitle(language.text("4. Test quality", "4. Calidad de la prueba"))
+                sectionTitle(language.text("5. Test quality", "5. Calidad de la prueba"))
 
                 GlassCard {
                     if pureToneTest != nil || predictiveTest != nil || !model.profile.speechTestPoints.isEmpty {
@@ -420,6 +446,16 @@ struct ResultsView: View {
                                 language.text("Speech-in-noise trials", "Ensayos de habla con ruido"),
                                 value: "\(model.profile.speechTestPoints.count)"
                             )
+                            if let speechEQComparison {
+                                qualityRow(
+                                    language.text("Standard/EQ comparison trials", "Ensayos de comparación estándar/EQ"),
+                                    value: "\(speechEQComparison.trials.count) · \(speechEQComparison.standardTrials.count)/condition"
+                                )
+                                qualityRow(
+                                    language.text("Matched-material word difference", "Diferencia de palabras del material"),
+                                    value: String(format: "%+.2f words", speechEQComparison.wordCountDifference)
+                                )
+                            }
                             if let predictiveTest {
                                 qualityRow(
                                     language.text("Predictive-listening trials", "Ensayos de escucha predictiva"),
@@ -952,6 +988,26 @@ struct TestRecordDetailView: View {
                 .chartXScale(domain: -10 ... 16)
                 .chartYScale(domain: 0 ... 100)
                 .frame(height: 280)
+            }
+        case .speechEQComparison:
+            if let test = record.speechEQComparison {
+                SpeechEQComparisonSummary(test: test, language: model.selectedLanguage)
+                SpeechComparisonFilterCard(
+                    bands: test.bands.map {
+                        StereoCompensationBand(
+                            frequency: $0.frequency,
+                            leftGainDB: $0.leftGainDB,
+                            rightGainDB: $0.rightGainDB
+                        )
+                    },
+                    maximumBoostDB: test.maximumBoostDB,
+                    language: model.selectedLanguage
+                )
+            } else {
+                ContentUnavailableView(
+                    model.selectedLanguage.text("Comparison record unavailable", "Registro de comparación no disponible"),
+                    systemImage: "slider.horizontal.3"
+                )
             }
         case .volume:
             GlassCard {

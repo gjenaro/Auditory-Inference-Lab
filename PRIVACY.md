@@ -15,6 +15,9 @@ Auditory Inference Lab may process:
 - test names, trial responses, response times, thresholds, reliability indicators,
   language and voice preferences;
 - the active audio route name and output channel count.
+- Standard/EQ comparison sentences, typed answers, scores, timing, replay counts,
+  randomized order, fixed playback settings, selected audiogram reference, and
+  exact left/right filter bands;
 - selected filter candidates, bundled music track identifiers, randomized A/B
   assignments, no-difference responses, and inferred personal preference signals.
 
@@ -27,9 +30,9 @@ test history.
 Microphone audio is analyzed in memory. Auditory Inference Lab does not intentionally record or
 save raw microphone audio. In the ordinary speech-in-noise, volume, and noise-
 profile modules, typed sentence responses are scored during the test and only the
-resulting score is retained. The Predictive Listening module stores the typed
+resulting score is retained. The Standard/EQ and Predictive Listening modules store the typed
 response with its stimulus, condition, score, timing, confidence, effort, and
-replay count so the behavioral result can be audited. Avoid entering personal or
+replay count as applicable so the behavioral result can be audited. Avoid entering personal or
 sensitive information as an answer or test name.
 
 ## Collection and sharing

@@ -209,6 +209,35 @@ by 12-predicate matrix in each language. `AppModel` advances a persisted modular
 permutation cursor so all 144 sentences in a language are used before that
 language begins another cycle. The English and Spanish cursors are independent.
 
+## Standard versus audiogram-EQ speech path
+
+`SpeechComparisonPlanner` draws 36 candidates from the persisted
+language-specific allocator, removes duplicate text, and constructs 12 pairs.
+Its distance function strongly penalizes shared content words and otherwise
+matches word count, letter count, and a transparent vowel-group proxy. Pair
+orientation is selected to minimize aggregate complexity imbalance. The two
+conditions contain 12 different sentences each; their block order and internal
+order are generated from a saved seed.
+
+`SpeechEQComparisonView` conceals the condition as Block 1/Block 2, holds voice,
+noise, digital SNR, maximum boost, and measurement source fixed, and reveals the
+mapping only in the saved result. For both conditions, `StimulusEngine` first
+normalizes speech, creates and scales the masker, mixes speech plus masker, and
+duplicates the mono mixture into synchronized left and right paths. Both paths
+always receive the same fixed master headroom. Standard bypasses both EQ units;
+Audiogram EQ enables independent filters calculated from the selected bilateral
+pure-tone record. This ordering prevents a speech-only EQ path from changing the
+nominal speech-to-masker relationship by design.
+
+The two trials in a matched sentence pair derive the masker from the same saved
+plan seed and pair index. Different-duration sentences therefore share the same
+deterministic masker prefix, reducing random-masker variance without reusing the
+speech material.
+
+The result payload links the audiogram, stores the exact filter, material,
+responses, scores, times, replays, order, and seed, and computes a paired
+descriptive contrast. It is separate from the adaptive SNR50/SNR80/SNR90 model.
+
 ## Predictive-listening path
 
 ```mermaid

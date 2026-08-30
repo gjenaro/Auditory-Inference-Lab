@@ -525,6 +525,7 @@ enum VoiceProfile: String, CaseIterable, Codable, Identifiable {
 
 enum TestKind: String, CaseIterable, Codable, Identifiable {
     case speechInNoise
+    case speechEQComparison
     case volume
     case frequency
     case noiseProfile
@@ -535,6 +536,7 @@ enum TestKind: String, CaseIterable, Codable, Identifiable {
     func displayName(in language: TestLanguage) -> String {
         switch self {
         case .speechInNoise: return language.text("Speech in Noise", "Habla con ruido")
+        case .speechEQComparison: return language.text("Speech: Standard vs EQ", "Habla: estándar vs EQ")
         case .volume: return language.text("Volume Sensitivity", "Sensibilidad al volumen")
         case .frequency: return language.text("Pure-tone Hearing Profile", "Perfil auditivo de tonos puros")
         case .noiseProfile: return language.text("Noise Profile", "Perfil de ruido")
@@ -545,6 +547,7 @@ enum TestKind: String, CaseIterable, Codable, Identifiable {
     var symbol: String {
         switch self {
         case .speechInNoise: return "ear.badge.waveform"
+        case .speechEQComparison: return "slider.horizontal.3"
         case .volume: return "speaker.wave.3.fill"
         case .frequency: return "waveform.path.ecg"
         case .noiseProfile: return "person.3.sequence.fill"
@@ -596,6 +599,7 @@ struct HearingProfile: Codable, Hashable {
     var frequencyThresholds: [FrequencyThreshold] = []
     var latestPureToneTest: BilateralPureToneTest? = nil
     var latestPredictiveTest: PredictiveListeningTest? = nil
+    var latestSpeechEQComparison: SpeechEQComparisonTest? = nil
     var noiseThresholds: [String: Double] = [:]
     var lastUpdated: Date? = nil
 
@@ -623,6 +627,7 @@ struct TestRecord: Identifiable, Codable, Hashable {
     let noiseKind: NoiseKind?
     let noiseThreshold: Double?
     let predictiveTest: PredictiveListeningTest?
+    let speechEQComparison: SpeechEQComparisonTest?
 
     init(
         id: UUID = UUID(),
@@ -641,7 +646,8 @@ struct TestRecord: Identifiable, Codable, Hashable {
         pureToneTest: BilateralPureToneTest? = nil,
         noiseKind: NoiseKind? = nil,
         noiseThreshold: Double? = nil,
-        predictiveTest: PredictiveListeningTest? = nil
+        predictiveTest: PredictiveListeningTest? = nil,
+        speechEQComparison: SpeechEQComparisonTest? = nil
     ) {
         self.id = id
         self.name = name
@@ -660,6 +666,7 @@ struct TestRecord: Identifiable, Codable, Hashable {
         self.noiseKind = noiseKind
         self.noiseThreshold = noiseThreshold
         self.predictiveTest = predictiveTest
+        self.speechEQComparison = speechEQComparison
     }
 }
 

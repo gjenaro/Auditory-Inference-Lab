@@ -206,6 +206,26 @@ final class AppModel: ObservableObject {
         return saved
     }
 
+    @discardableResult
+    func saveSpeechEQComparison(_ test: SpeechEQComparisonTest) -> SpeechEQComparisonTest {
+        var saved = test
+        saved.name = cleanName(test.name, kind: .speechEQComparison, language: test.language)
+        profile.latestSpeechEQComparison = saved
+        profile.lastUpdated = saved.date
+        add(TestRecord(
+            id: saved.id,
+            name: saved.name,
+            date: saved.date,
+            kind: .speechEQComparison,
+            language: saved.language,
+            voiceProfile: saved.voiceProfile,
+            resolvedVoiceName: saved.resolvedVoiceName,
+            noiseKind: saved.noise,
+            speechEQComparison: saved
+        ))
+        return saved
+    }
+
     func reset() {
         profile = HearingProfile()
         history = []

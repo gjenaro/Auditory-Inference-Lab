@@ -161,16 +161,19 @@ final class StimulusEngine: ObservableObject {
 
     private var engine: AVAudioEngine?
     private var speechPlayer: AVAudioPlayerNode?
+    private var comparisonRightPlayer: AVAudioPlayerNode?
     private var noisePlayer: AVAudioPlayerNode?
     private let synthesizer = AVSpeechSynthesizer()
 
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
         speechPlayer?.stop()
+        comparisonRightPlayer?.stop()
         noisePlayer?.stop()
         engine?.stop()
         engine = nil
         speechPlayer = nil
+        comparisonRightPlayer = nil
         noisePlayer = nil
         isPlaying = false
     }
@@ -200,6 +203,62 @@ final class StimulusEngine: ObservableObject {
             let targetNoiseRMS = speechRMS / pow(10.0, snrDB / 20.0)
             scale(noiseBuffer, by: rawNoiseRMS > 0 ? targetNoiseRMS / rawNoiseRMS : 0)
             try play(speechBuffers: speech, noiseBuffer: noiseBuffer)
+        } catch {
+            lastError = error.localizedDescription
+            isPlaying = false
+        }
+    }
+
+    /// Plays a fixed-SNR comparison stimulus through identical signal paths in
+    /// both conditions. Speech and noise are mixed before the left/right filter,
+    /// so enabling EQ changes the combined signal rather than selectively making
+    /// speech louder than the masker. Fixed master attenuation is also identical.
+    func playSpeechComparison(
+        _ sentence: String,
+        snrDB: Double,
+        noise: NoiseKind,
+        language: TestLanguage,
+        voiceProfile: VoiceProfile,
+        bands: [StereoCompensationBand],
+        eqEnabled: Bool,
+        fixedHeadroomMaximumBoostDB: Double,
+        noiseSeed: UInt64
+    ) async {
+        stop()
+        isPlaying = true
+        lastError = nil
+        do {
+            try AudioSessionManager.shared.configureForPlayback()
+            let speechPieces = try await synthesize(sentence, language: language, profile: voiceProfile)
+            guard let format = speechPieces.first?.format else {
+                isPlaying = false
+                return
+            }
+            normalize(speechPieces, toActiveRMS: 0.12)
+            let speechRMS = activeRMS(of: speechPieces)
+            guard let combinedSpeech = concatenate(speechPieces) else {
+                throw NSError(domain: "SNRLab", code: 14, userInfo: [NSLocalizedDescriptionKey: "Unable to prepare the comparison sentence."])
+            }
+            let noiseBuffer = makeNoiseBuffer(
+                format: format,
+                frames: Int(combinedSpeech.frameLength),
+                kind: noise,
+                seed: noiseSeed
+            )
+            let rawNoiseRMS = rms(of: [noiseBuffer])
+            let targetNoiseRMS = speechRMS / pow(10.0, snrDB / 20.0)
+            scale(noiseBuffer, by: rawNoiseRMS > 0 ? targetNoiseRMS / rawNoiseRMS : 0)
+            guard let mixed = mix(combinedSpeech, with: noiseBuffer),
+                  let mono = makeMonoCopy(mixed) else {
+                throw NSError(domain: "SNRLab", code: 15, userInfo: [NSLocalizedDescriptionKey: "Unable to mix the comparison audio."])
+            }
+            scaleWithHeadroom([mono], requestedGain: 1)
+            try playStereoComparison(
+                monoBuffer: mono,
+                bands: bands,
+                eqEnabled: eqEnabled,
+                fixedHeadroomMaximumBoostDB: fixedHeadroomMaximumBoostDB
+            )
         } catch {
             lastError = error.localizedDescription
             isPlaying = false
@@ -516,6 +575,122 @@ final class StimulusEngine: ObservableObject {
         isPlaying = true
     }
 
+    private func playStereoComparison(
+        monoBuffer: AVAudioPCMBuffer,
+        bands: [StereoCompensationBand],
+        eqEnabled: Bool,
+        fixedHeadroomMaximumBoostDB: Double
+    ) throws {
+        let audioEngine = AVAudioEngine()
+        let left = AVAudioPlayerNode()
+        let right = AVAudioPlayerNode()
+        let leftEqualizer = AVAudioUnitEQ(numberOfBands: CompensationDesigner.frequencies.count)
+        let rightEqualizer = AVAudioUnitEQ(numberOfBands: CompensationDesigner.frequencies.count)
+        let leftPanner = AVAudioMixerNode()
+        let rightPanner = AVAudioMixerNode()
+        let headroomMixer = AVAudioMixerNode()
+
+        [left, right, leftEqualizer, rightEqualizer, leftPanner, rightPanner, headroomMixer].forEach {
+            audioEngine.attach($0)
+        }
+        let monoFormat = monoBuffer.format
+        guard let stereoFormat = AVAudioFormat(
+            standardFormatWithSampleRate: monoFormat.sampleRate,
+            channels: 2
+        ) else {
+            throw NSError(domain: "SNRLab", code: 16, userInfo: [NSLocalizedDescriptionKey: "Unable to create stereo comparison audio."])
+        }
+
+        audioEngine.connect(left, to: leftEqualizer, format: monoFormat)
+        audioEngine.connect(right, to: rightEqualizer, format: monoFormat)
+        audioEngine.connect(leftEqualizer, to: leftPanner, format: monoFormat)
+        audioEngine.connect(rightEqualizer, to: rightPanner, format: monoFormat)
+        audioEngine.connect(leftPanner, to: headroomMixer, fromBus: 0, toBus: 0, format: stereoFormat)
+        audioEngine.connect(rightPanner, to: headroomMixer, fromBus: 0, toBus: 1, format: stereoFormat)
+        audioEngine.connect(headroomMixer, to: audioEngine.mainMixerNode, format: stereoFormat)
+        leftPanner.pan = -1
+        rightPanner.pan = 1
+
+        let normalized = CompensationDesigner.frequencies.map { frequency -> StereoCompensationBand in
+            bands.min { abs($0.frequency - frequency) < abs($1.frequency - frequency) }
+                ?? StereoCompensationBand(frequency: frequency, leftGainDB: 0, rightGainDB: 0)
+        }
+        for (index, band) in normalized.enumerated() {
+            configureComparisonEQ(leftEqualizer.bands[index], frequency: band.frequency, gainDB: band.leftGainDB, index: index)
+            configureComparisonEQ(rightEqualizer.bands[index], frequency: band.frequency, gainDB: band.rightGainDB, index: index)
+        }
+        leftEqualizer.bypass = !eqEnabled
+        rightEqualizer.bypass = !eqEnabled
+        let fixedHeadroom = min(20, max(0, fixedHeadroomMaximumBoostDB))
+        headroomMixer.outputVolume = Float(pow(10, -(fixedHeadroom + 1) / 20))
+
+        right.scheduleBuffer(monoBuffer, at: nil, options: [], completionHandler: nil)
+        left.scheduleBuffer(monoBuffer, at: nil, options: []) { [weak self] in
+            Task { @MainActor in self?.isPlaying = false }
+        }
+        audioEngine.prepare()
+        try audioEngine.start()
+        right.play()
+        left.play()
+
+        engine = audioEngine
+        speechPlayer = left
+        comparisonRightPlayer = right
+        noisePlayer = nil
+        isPlaying = true
+    }
+
+    private func configureComparisonEQ(
+        _ filter: AVAudioUnitEQFilterParameters,
+        frequency: Double,
+        gainDB: Double,
+        index: Int
+    ) {
+        filter.frequency = Float(frequency)
+        filter.gain = Float(gainDB)
+        filter.bandwidth = 0.80
+        filter.filterType = index == 0
+            ? .lowShelf
+            : (index == CompensationDesigner.frequencies.count - 1 ? .highShelf : .parametric)
+        filter.bypass = abs(gainDB) < 0.05
+    }
+
+    private func mix(_ first: AVAudioPCMBuffer, with second: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard first.format.channelCount == second.format.channelCount,
+              first.frameLength == second.frameLength,
+              let firstData = first.floatChannelData,
+              let secondData = second.floatChannelData,
+              let result = AVAudioPCMBuffer(pcmFormat: first.format, frameCapacity: first.frameLength),
+              let resultData = result.floatChannelData else { return nil }
+        result.frameLength = first.frameLength
+        for channel in 0..<Int(first.format.channelCount) {
+            for frame in 0..<Int(first.frameLength) {
+                resultData[channel][frame] = firstData[channel][frame] + secondData[channel][frame]
+            }
+        }
+        return result
+    }
+
+    private func makeMonoCopy(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard let source = buffer.floatChannelData,
+              let monoFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: buffer.format.sampleRate,
+                channels: 1,
+                interleaved: false
+              ),
+              let mono = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: buffer.frameLength),
+              let destination = mono.floatChannelData else { return nil }
+        mono.frameLength = buffer.frameLength
+        let channels = max(1, Int(buffer.format.channelCount))
+        for frame in 0..<Int(buffer.frameLength) {
+            var sum: Float = 0
+            for channel in 0..<channels { sum += source[channel][frame] }
+            destination[0][frame] = sum / Float(channels)
+        }
+        return mono
+    }
+
     private static func copyBuffer(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
         guard let source = buffer.floatChannelData else { return nil }
         guard let copy = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameLength) else { return nil }
@@ -677,14 +852,19 @@ final class StimulusEngine: ObservableObject {
         }
     }
 
-    private func makeNoiseBuffer(format: AVAudioFormat, frames: Int, kind: NoiseKind) -> AVAudioPCMBuffer {
+    private func makeNoiseBuffer(
+        format: AVAudioFormat,
+        frames: Int,
+        kind: NoiseKind,
+        seed: UInt64 = UInt64.random(in: 1...UInt64.max)
+    ) -> AVAudioPCMBuffer {
         let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frames))!
         buffer.frameLength = AVAudioFrameCount(frames)
         guard let data = buffer.floatChannelData else { return buffer }
         let channels = Int(format.channelCount)
         var previous = 0.0
         var slow = 0.0
-        var rng = SystemRandomNumberGenerator()
+        var rng = SeededAudioNoiseGenerator(seed: seed)
 
         for i in 0..<frames {
             let white = Double.random(in: -1...1, using: &rng)
@@ -711,5 +891,19 @@ final class StimulusEngine: ObservableObject {
             for ch in 0..<channels { data[ch][i] = Float(sample * 0.22) }
         }
         return buffer
+    }
+}
+
+private struct SeededAudioNoiseGenerator: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: UInt64) { state = seed == 0 ? 0xD1B54A32D192ED03 : seed }
+
+    mutating func next() -> UInt64 {
+        state &+= 0x9E3779B97F4A7C15
+        var value = state
+        value = (value ^ (value >> 30)) &* 0xBF58476D1CE4E5B9
+        value = (value ^ (value >> 27)) &* 0x94D049BB133111EB
+        return value ^ (value >> 31)
     }
 }

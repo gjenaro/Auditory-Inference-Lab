@@ -121,6 +121,7 @@ The profile is the latest cross-module summary:
 - legacy single-curve frequency thresholds for backward compatibility;
 - latest bilateral pure-tone test;
 - latest predictive-listening test and trial payload;
+- latest Standard-versus-EQ speech comparison and trial payload;
 - latest per-noise thresholds;
 - last-update timestamp.
 
@@ -137,6 +138,10 @@ History records contain common metadata plus a module-specific payload:
 - noise kind and summary threshold.
 - complete predictive-listening result, including the exact stimulus/reference,
   typed response, score, timing, replays, confidence, and effort for every trial.
+- complete Standard/EQ result: both sentence lists and pair indices, typed
+  answers, scores, timing, replays, surface-complexity metrics, noise/SNR, block
+  order and seed, selected audiogram identifier/name/route, boost cap, and exact
+  left/right filter bands.
 
 History is newest-first and limited to 100 records.
 

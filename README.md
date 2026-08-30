@@ -21,6 +21,7 @@ Repository: <https://github.com/gjenaro/Auditory-Inference-Lab>
 | --- | --- | --- |
 | Live SNR | Microphone RMS tracking with rolling low/high percentiles | Relative speech, noise, and SNR estimates in dBFS/dB |
 | Speech in noise | English or Spanish synthesized sentences mixed with six synthetic noises; 144-item non-repeating cycle per language | Trial scores, sigmoid, SNR50, SNR80, SNR90, optional bootstrap intervals |
+| Speech Standard vs EQ | Two randomized, blinded 12-sentence blocks at fixed SNR; non-overlapping material matched by word, letter, vowel-group, and content-word checks | Standard/EQ word recognition, paired difference and approximate interval, material-balance audit, exact L/R filter |
 | Bilateral pure tone | Separate left/right channels on stereo AirPods or Bose QuietComfort, pulsed tones, 10-down/5-up staircase, catch trials, 1 kHz retest | Eight-frequency relative audiogram and quality metrics |
 | Predictive listening | 36 bilingual trials spanning semantic context, interrupted speech, misleading context, and consistent filtered speech | Context benefit, auditory-restoration benefit, prediction intrusions, adaptation gain, confidence, effort, timing, and reliability |
 | Volume sensitivity | Six digital speech levels from −42 to −12 dBFS | Word recognition versus digital level |
@@ -108,6 +109,13 @@ The predictive-listening module measures behavioral responses to controlled
 speech manipulations. It does not record brain activity and does not diagnose a
 cognitive, neurological, or central auditory condition.
 
+The Standard vs EQ module is a within-run exploratory comparison. The same
+voice, synthetic masker, digital SNR, and master headroom are used in both
+blocks. Speech and masker are mixed before the selected bilateral filter, so EQ
+does not receive an artificial speech-only level advantage. Block order is
+randomized and concealed until completion. A positive difference is descriptive
+for that run, not proof of clinical or therapeutic benefit.
+
 The neuroscience rationale, behavioral-to-neural claim boundaries, and a
 preregistered-study pathway are documented separately. The repository links to
 papers of record but does not redistribute copyrighted articles.
@@ -165,6 +173,9 @@ improved intelligibility or fidelity.
   runs are JSON-encoded into `UserDefaults`.
 - Predictive trials preserve stimulus, response, condition, score, timing,
   replay count, confidence, and effort locally for protocol audit and research.
+- Standard/EQ trials preserve both sentence sets, pair assignment, typed answer,
+  score, timing, replay count, fixed SNR/noise, plan seed, block order, selected
+  audiogram identifier, and exact eight-band left/right filter.
 - Microphone buffers are analyzed in memory and are not intentionally recorded.
 - The app contains no analytics SDK, account system, advertising SDK, or network
   upload code.
@@ -238,9 +249,11 @@ AuditoryInferenceLab/
 ## Project status
 
 This project is a new iPhone MVP and engineering research prototype, version
-0.1. Its complete Swift source passes iPhone Simulator SDK type-checking. The new
+0.2. Its complete Swift source passes iPhone SDK type-checking. The new
 inference model also passes its deterministic profile, cap, recommendation, and
-JSON round-trip checks. Xcode completed a development-signed device build,
+JSON round-trip checks. The matched speech-comparison planner passes deterministic
+English/Spanish checks for trial count, unique material, condition balance, and
+score calculations. Xcode completed a development-signed device build,
 installed the distinct `com.gjenaro.AuditoryInferenceLab` bundle on `iPhone G`,
 launched it, and reported the run complete on August 30, 2026. The new Lab has
 not yet been acoustically calibrated, clinically validated, evaluated with actual AirPods/Bose

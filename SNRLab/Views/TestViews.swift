@@ -123,6 +123,16 @@ struct TestHubView: View {
                     destination: SpeechInNoiseTestView()
                 )
                 TestLink(
+                    title: TestKind.speechEQComparison.displayName(in: language),
+                    subtitle: language.text(
+                        "Compare matched, non-repeating speech blocks with standard playback and audiogram-based left/right EQ.",
+                        "Compara bloques de habla equilibrados y sin repetición con reproducción estándar y EQ izquierda/derecha basada en el audiograma."
+                    ),
+                    symbol: TestKind.speechEQComparison.symbol,
+                    tint: .cyan,
+                    destination: SpeechEQComparisonView()
+                )
+                TestLink(
                     title: TestKind.predictiveListening.displayName(in: language),
                     subtitle: language.text(
                         "Context, auditory closure, prediction cost, adaptation, and listening effort.",
